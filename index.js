@@ -20,11 +20,24 @@ function getResponse(statusCode, body) {
   };
 }
 
-exports.handler = async (event) => {
-  const { owner, repository } = event.queryStringParameters;
+async function handler(event) {
+  const { owner, repository, event_type } = event.queryStringParameters;
+  if (!owner || !repository || !event_type) {
+    return getResponse(
+      400,
+      'Bad Request: need owner, repository and event_type in query parameters'
+    );
+  }
+  if (!event.headers || !event.headers['Authorization']) {
+    return getResponse(
+      400,
+      'Bad Request: need Authorization headers with GitHub PAT'
+    );
+  }
+  const githubToken = event.headers['Authorization'];
   const url = getGitHubActionsUrl(owner, repository);
-  const headers = getHeaders(event.headers['Authorization']);
-  const data = { event_type: 'deploy' };
+  const headers = getHeaders(githubToken);
+  const data = { event_type };
 
   try {
     const response = await axios.post(url, data, { headers });
@@ -33,4 +46,15 @@ exports.handler = async (event) => {
     console.log(err);
     return getResponse(500, 'Failed to call GitHub Actions');
   }
-};
+}
+
+if (process.env.NODE_ENV !== 'test') {
+  module.exports = {
+    getGitHubActionsUrl,
+    getHeaders,
+    getResponse,
+    handler,
+  };
+} else {
+  exports.handler = handler;
+}
