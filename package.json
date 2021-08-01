@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint --ext \".js\" --ignore-path .gitignore .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "create:zip": "NODE_ENV=production npm ci && zip -r function-forward-prismic-webhook.zip package.json node_modules index.js && NODE_ENV=development npm ci"
   },
   "keywords": [],
   "author": "",
